@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpine toast</title>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link href="/dist/output.css" rel="stylesheet">
+</head>
+<body>
+
+    <button x-data class="bg-green-400 px-4 py-2 rounded m-5 text-white" @click="$dispatch('toast', {type: 'success', title: 'test', message: 'hello there this is a test'});">Launch a success toast</button>
+    <button x-data class="bg-blue-400 px-4 py-2 rounded m-5 text-white" @click="$dispatch('toast', {type: 'info', title: 'test', message: 'hello there this is a test'});">Launch a info toast</button>
+    <button x-data class="bg-orange-400 px-4 py-2 rounded m-5 text-white" @click="$dispatch('toast', {type: 'warning', title: 'test', message: 'hello there this is a test'});">Launch a warning toast</button>
+    <button x-data class="bg-red-400 px-4 py-2 rounded m-5 text-white" @click="$dispatch('toast', {type: 'error', title: 'test', message: 'hello there this is a test'});">Launch an error toast</button>
+
+    <div x-data="toast()"
+        class="fixed inset-0 flex flex-col items-end justify-start py-5 h-screen w-screen"
+        @toast.window="add($event.detail)"
+        style="pointer-events:none; z-index: 10000">
+        <template x-for="alert of alerts" :key="alert.id">
+            <div
+                x-show="visible.includes(alert)"
+                x-transition:enter="transition ease-in duration-200"
+                x-transition:enter-start="transform opacity-0 translate-y-2"
+                x-transition:enter-end="transform opacity-100"
+                x-transition:leave="transition ease-out duration-2000"
+                x-transition:leave-start="transform translate-x-0 opacity-100"
+                x-transition:leave-end="transform translate-x-full opacity-0"
+                @click="remove(alert.id)"
+                class="rounded border-1 text-white mb-4 mr-6 px-4 h-16 flex items-center justify-center shadow-lg cursor-pointer"
+                :class="{
+                    'border-green-500 bg-green-400': alert.type === 'success',
+                    'border-blue-500 bg-blue-400': alert.type === 'info',
+                    'border-orange-500 bg-orange-400': alert.type === 'warning',
+                    'border-red-500 bg-red-400': alert.type === 'error',
+                    }"
+                style="pointer-events:all">
+                <div>
+                    <h4 x-text="alert.title" class="m-0 font-bold"></h4>
+                    <p x-text="alert.message" x-show="alert.title.length" class="m-0"></p>
+                </div>
+            </div>
+        </template>
+    </div>
+
+    <script>
+        function toast() {
+            return {
+                alerts: [],
+                visible: [],
+                add(alert) {
+                    alert.id = Date.now()
+                    this.alerts.push(alert)
+                    this.fire(alert.id)
+                },
+                fire(id) {
+                    this.visible.push(this.alerts.find(alert => alert.id == id))
+                    const timeShown = 2000 * this.visible.length
+                    setTimeout(() => {
+                        this.remove(id)
+                    }, timeShown)
+                },
+                remove(id) {
+                    const alert = this.visible.find(alert => alert.id == id)
+                    const index = this.visible.indexOf(alert)
+                    this.visible.splice(index, 1)
+                },
+            }
+        }
+    </script>
+    
+</body>
+</html>
